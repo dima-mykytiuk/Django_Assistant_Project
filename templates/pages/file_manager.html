@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}
+File manager :: {{ block.super }}
+{% endblock %}
+
+{% block content %}
+<h1 class="file_manager_title">File Manager</h1>
+<div style="margin-top: 150px">
+    <div class="file_manager_btns">
+        <a class="add_file" href="{% url 'upload' %}">Upload file</a>
+        <a class="add_file" href="{% url 'file_manager' %}">Show all</a>
+    </div>
+    <div class="container mt-3">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="list-group">
+                    {% for item in categories %}
+                    <a href="{% url 'show_by_category' item.id %}" class="list-group-item list-group-item-action nav_bar">{{ item.file_type }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-md-9">
+                {% if files|length > 0 %}
+                {% for item in files %}
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <div class="file_manager_content">
+                            <h5 style="width: 3%">{{ forloop.counter }}. </h5>
+                            <h5 style="width: 67%">File: {{ item.filename }}</h5>
+                            <a style="width: 15%" href="{{item.file_name.url}}" download="{{filename}}"> Download</a>
+                            <a style="width: 15%" href="{% url 'delete_file' item.id %}">Delete file</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <h3 class="no_content_files">No files</h3>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

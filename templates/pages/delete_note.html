@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}
+Add income :: {{ block.super }}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h3 class="text-center">Delete</h3>
+    <div class="col-4 offset-4 alert alert-primary">
+        <form method="post">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <h5>Are you sure you want to delete "{{ object }}"?</h5>
+            <button type="submit" class="btn btn-danger btn-sm ">Submit</button>
+            <a href="{% url 'note_book' %}" class="btn btn-outline-secondary btn-sm" role="button">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Contact book::{{ block.super }}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="section_header">
+        <h3 class="section_suptitle">Notes</h3>
+        <h2 class="section_title">All your notes are here</h2>
+        {% if notes|length > 0 %}
+        <div class="search_note">
+            <form method="post">
+                {% csrf_token %}
+                <input class="inp_search" type="search" placeholder="Search by name" name="find_note">
+                <button class="submit_btn" type="submit">Search</button>
+            </form>
+        </div>
+        <div class="search_contact">
+            <form method="post">
+                {% csrf_token %}
+                <input class="inp_search" type="search" placeholder="Search by tags" name="find_by_tag">
+                <button class="search_birthday" type="submit">Search by tag</button>
+            </form>
+        </div>
+    </div>
+    <div class="flex-row-container-notes">
+        {% for note in notes %}
+        <div class="flex-row-notes-item">
+            <div class="note_item">
+                <h5 style="width: 1%">{{ forloop.counter }}.</h5>
+                <h5 style="width: 10%"><a class="detail_note_info" href="{% url 'detail_note' note.id%}">{{ note.name }}</a></h5>
+                <h5 style="width: 55%">tags:<br> {% for tag in tags %} {% if tag.note_id == note.id %}
+                    #{{ tag.tag }};{% endif %} {% endfor %}</h5>
+                <a class="show_detail_info_note" href="{% url 'detail_note' note.id%}">More info</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <h2 class="no_notes">NO NOTES</h2>
+    {% endif %}
+    <div class="btns_note_book">
+    <a class="add_new_btn" href="{% url 'add_note'%}">Add new note</a>
+    <a class="add_new_btn" href="{% url 'note_book'%}">Show all</a>
+    </div>
+    </div>
+{% endblock %}

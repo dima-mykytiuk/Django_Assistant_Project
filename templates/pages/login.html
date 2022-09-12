@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}
+Add income :: {{ block.super }}
+{% endblock %}
+
+{% block content %}
+<div class="form_content">
+    <h1 class="login_title">Login</h1>
+    <form action="{% url 'login' %}" method="post">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <button class="login_btn" type="submit">Login</button>
+        {% for message in messages %}
+            <p id="messages">{{message}}</p>
+        {% endfor %}
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,5 @@
+{% autoescape off %}
+
+Hi {{ user|safe }},
+You successfully changed note {{ note_name }} status to {% if status %}Completed{% else %}Not Completed{% endif %} in your note book!
+{% endautoescape %}

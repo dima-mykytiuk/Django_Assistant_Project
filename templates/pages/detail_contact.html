@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Contact info::{{ block.super }}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="section_header">
+        <h3 class="section_suptitle">{{contact.name}}</h3>
+        <h2 class="section_title">All info about {{contact.name}} here</h2>
+    </div>
+    <div class="flex-row-container-contact">
+        <div class="flex-row-item-contact">
+            <div class="cnt_detail_info">
+                <h3 style="width: 20%;">NAME:</h3>
+                <h3 style="width: 40%;">{{ contact.name }}</h3>
+                <a class="change_cnt_btn" href="{% url 'change_name' id_contact %}">change</a>
+            </div>
+        </div>
+        <hr>
+        <div class="flex-row-item-contact">
+            <div class="cnt_detail_info">
+                <h3 style="width: 25%;">PHONES:</h3>
+                {% if phones|length < 4 %}
+                <h3 class="phone_cnt" style="width: 45%">{% for phone in phones %}<a class="phone_del_link" href='{% url "delete_phone" id_contact phone.id %}'>{{ phone.phone }}</a> {% endfor %}</h3>
+                {% else %}
+                <h3 class="phone_cnt" style="width: 65%">{% for phone in phones %}<a class="phone_del_link" href='{% url "delete_phone" id_contact phone.id %}'>{{ phone.phone }} </a>{% endfor %}</h3>
+                {% endif %}
+                {% if phones|length < 4 %}
+                <a class="add_phone_btn" href="{% url 'add_phone' id_contact %}">add</a>
+                {% endif %}
+            </div>
+        </div>
+        <hr>
+        <div class="flex-row-item-contact">
+            <div class="cnt_detail_info">
+                <h3 style="width: 20%;">ADDRESS:</h3>
+                <h3 style="width: 40%;">{{ contact.address }}</h3>
+                <a class="change_cnt_btn" href="{% url 'change_address' id_contact %}">change</a>
+            </div>
+        </div>
+        <hr>
+        <div class="flex-row-item-contact">
+            <div class="cnt_detail_info">
+                <h3 style="width: 20%;">BIRTHDAY:</h3>
+                <h3 style="width: 40%;">{{ contact.birthday }}</h3>
+                <a class="change_cnt_btn" href="{% url 'change_birthday' id_contact %}">change</a>
+            </div>
+        </div>
+        <hr>
+        <div class="flex-row-item-contact">
+            <div class="cnt_detail_info">
+                <h3 style="width: 20%;">EMAIL:</h3>
+                <h3 style="width: 40%;">{{ contact.email }}</h3>
+                <a class="change_cnt_btn" href="{% url 'change_email' id_contact %}">change</a>
+            </div>
+        </div>
+        <hr>
+    </div>
+    <a class="delete_contact" href="{% url 'delete_contact' id_contact %}">Delete contact</a>
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Contact book::{{ block.super }}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="section_header">
+        <h3 class="section_suptitle">ContactBook</h3>
+        <h2 class="section_title">All your contacts are here</h2>
+        {% if contact|length > 0 %}
+        <div class="search_contact">
+            <form method="post">
+                {% csrf_token %}
+                <input class="inp_search" type="search" placeholder="Search by name" name="find_contact">
+                <button class="submit_btn" type="submit">Search</button>
+            </form>
+        </div>
+        <div class="search_contact">
+            <form method="post">
+                {% csrf_token %}
+                <input class="inp_search" type="search" placeholder="Search birthdays" name="find_birthday">
+                <button class="search_birthday" type="submit">Search birthday</button>
+            </form>
+        </div>
+    </div>
+    <div class="flex-row-container">
+        {% for cnt in contact %}
+        <div class="flex-row-item">
+            <div class="contact_item">
+                <h5 style="width: 1%">{{ forloop.counter }}.</h5>
+                <h5 style="width: 10%"><a class="contact_link" href="{% url 'detail_contact' cnt.id %}">{{ cnt.name }}</a></h5>
+                <h5 style="width: 55%">phones:<br> {% for phone in phones %} {% if phone.contact_id == cnt.id %}
+                    {{ phone.phone }};{% endif %} {% endfor %}</h5>
+                <h5 style="width: 20%">birthday:<br> {{ cnt.birthday }}</h5>
+                <a class="show_detail_info" href="{% url 'detail_contact' cnt.id %}">More info</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <h2 class="no_contacts">NO CONTACT</h2>
+    {% endif %}
+    <div class="btns_contact_book">
+        <a class="add_new_btn" href="{% url 'add_contact' %}">Add new contact</a>
+        <a class="add_new_btn" href="{% url 'contact_book' %}">Show all</a>
+    </div>
+</div>
+{% endblock %}

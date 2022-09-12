@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}
+Add income :: {{ block.super }}
+{% endblock %}
+
+{% block content %}
+<div class="form_content">
+    <h1 class="reg_title">Register</h1>
+    <form action="{% url 'registration' %}" method="post">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <button class="reg_btn" type="submit">Register</button>
+    </form>
+</div>
+{% endblock %}

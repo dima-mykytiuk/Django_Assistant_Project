@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+media_cdn
+contact_book/migrations
+file_manager/migrations
+note_book/migrations

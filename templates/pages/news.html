@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}
+    {{ block.super }}
+{% endblock %}
+{% block content %}
+
+<div class="container">
+<h1 class="form_title"> Latest news: </h1>
+  <div class="flex-row-container">
+        {% for news in NL %}
+        <div class="flex-row-item">
+            <div class="contact_item">
+                <h5 style="width: 1%">{{ forloop.counter }}.</h5>
+                <h5 style="width: 10%">Time:<br>{{news.date_of_news}}</h5>
+                <h5 style="width: 65%">Title:<br> {{ news.title }}</h5>
+                <a class="show_detail_info" href="https://www.dw.com{{news.link}}" target="_blank">Link</a>
+            </div>
+        </div>
+       {% endfor %}
+  </div>
+</div>
+
+{% endblock %}

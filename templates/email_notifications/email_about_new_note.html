@@ -1,0 +1,8 @@
+{% autoescape off %}
+
+Hi {{ user|safe }},
+You successfully added note "{{note_name|safe}}" contact in your contact list:
+description: {{ description|safe }}
+tags: {{ tags|safe }}
+
+{% endautoescape %}
