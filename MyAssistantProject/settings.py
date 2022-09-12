@@ -175,7 +175,7 @@ SERVER_EMAIL = os.environ.get('EMAIL_FROM_USER', '')
 accept_content = ['json']
 # result_backend = 'django-db'
 # cache_backend = 'django-cache'
-CELERY_broker_url = 'amqp://localhost'
+CELERY_broker_url = os.environ.get('CELERY_BROKER_URL', '')
 
 task_serializer = 'json'
 result_serializer = 'json'

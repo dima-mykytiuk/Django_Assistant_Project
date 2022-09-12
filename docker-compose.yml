@@ -24,13 +24,25 @@ services:
       - POSTGRES_PASSWORD=${DB_PASS}
     ports:
       - "5432:5432"
-  news_collector:
-    build: .
-    container_name: news_collector
-    command: python manage.py crawl
-    env_file:
-      - .env
+  celery:
+    restart: always
+    container_name: Celery
+    build:
+      context: .
+    command: celery -A MyAssistantProject worker -l info
     volumes:
       - .:/code
+    env_file:
+      - .env
     depends_on:
       - db
+      - rabbit_mq
+
+  rabbit_mq:
+    container_name: RabbitMQ_Server
+    image: rabbitmq:3.10-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+
