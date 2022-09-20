@@ -23,8 +23,8 @@ class Contact(models.Model):
 
 
 class ContactPhone(models.Model):
-    phone = models.CharField(max_length=13, unique=True)
-    contact = models.ForeignKey(Contact, on_delete=models.CASCADE)
+    phone = models.CharField(max_length=13)
+    contact = models.ForeignKey(Contact, related_name='phones', on_delete=models.CASCADE)
     updated_at = models.DateField(null=False, auto_now=True)
     
     def __str__(self):

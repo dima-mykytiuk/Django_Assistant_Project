@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'contact_book.apps.ContactBookConfig',
     'users.apps.UsersConfig',
     'crispy_forms',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -80,23 +81,23 @@ WSGI_APPLICATION = 'MyAssistantProject.wsgi.application'
 
 DATABASES = {
     # to work without docker
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.environ.get('DB_NAME', ''),
-        'USER': os.environ.get('DB_USER', ''),
-        'PASSWORD': os.environ.get('DB_PASS', ''),
-        'HOST': "localhost",
-        'PORT': os.environ.get('DB_PORT', ''),
-    }
-    # to work with docker
     # 'default': {
     #     'ENGINE': 'django.db.backends.postgresql_psycopg2',
-    #     'NAME': str(os.environ["DB_NAME"]),
-    #     'USER': str(os.environ["DB_USER"]),
-    #     'PASSWORD': str(os.environ["DB_PASS"]),
-    #     'HOST': str(os.environ["DB_HOST"]),
-    #     'PORT': str(os.environ["DB_PORT"]),
+    #     'NAME': os.environ.get('DB_NAME', ''),
+    #     'USER': os.environ.get('DB_USER', ''),
+    #     'PASSWORD': os.environ.get('DB_PASS', ''),
+    #     'HOST': "localhost",
+    #     'PORT': os.environ.get('DB_PORT', ''),
     # }
+    # to work with docker
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': str(os.environ["DB_NAME"]),
+        'USER': str(os.environ["DB_USER"]),
+        'PASSWORD': str(os.environ["DB_PASS"]),
+        'HOST': str(os.environ["DB_HOST"]),
+        'PORT': str(os.environ["DB_PORT"]),
+    }
 }
 
 
@@ -152,6 +153,16 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media_cdn')
 LOGIN_URL = "login"
 
 
+# DJANGO REST FRAMEWORK
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 6,
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ]
+}
+
 # EMAIL CONFIG
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -176,7 +187,6 @@ accept_content = ['json']
 # result_backend = 'django-db'
 # cache_backend = 'django-cache'
 CELERY_broker_url = os.environ.get('CELERY_BROKER_URL', '')
-
 task_serializer = 'json'
 result_serializer = 'json'
 timezone = 'Europe/Amsterdam'

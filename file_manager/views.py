@@ -1,24 +1,33 @@
-import os
 from pathlib import Path
-
-from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import DeleteView
+from rest_framework import viewsets
+from rest_framework.permissions import IsAdminUser
 
 from .models import FileManager, FileType
 from .forms import UploadFile
-from django.contrib.auth.decorators import login_required
+
+from .serializers import FileSerializer
 from .tasks import send_about_upload, send_about_file_delete
 
-
 # Create your views here.
+
+"""API"""
+
+
+class FileUploadDownloadApiView(viewsets.ModelViewSet):
+    queryset = FileManager.objects.all()
+    serializer_class = FileSerializer
+    permission_classes = (IsAdminUser, )
+
+
 class IndexView(View):
     template_name = 'pages/index.html'
-
+    
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, context={'title': 'Web assistant'})
 
@@ -95,7 +104,15 @@ class DeleteFileView(LoginRequiredMixin, DeleteView):
     model = FileManager
     template_name = 'pages/delete_file.html'
     success_url = reverse_lazy('file_manager')
-
+    
+    def get(self, request, *args, **kwargs):
+        contact = FileManager.objects.get(pk=self.kwargs['pk'])
+        if request.user.id == contact.user_id:
+            response = super(DeleteFileView, self).get(request, *args, **kwargs)
+            return response
+        else:
+            return HttpResponse(status=404)
+    
     def delete(self, request, *args, **kwargs):
         file = FileManager.objects.get(pk=self.kwargs['pk'])
         response = super(DeleteFileView, self).delete(request, *args, **kwargs)
@@ -105,7 +122,7 @@ class DeleteFileView(LoginRequiredMixin, DeleteView):
 
 class ShowByCategoryView(LoginRequiredMixin, View):
     template_name = 'pages/file_manager.html'
-
+    
     def get(self, request, *args, **kwargs):
         logged_user_id = request.user.id
         files = FileManager.objects.filter(user_id=logged_user_id, file_type_id=self.kwargs['category_id'])
@@ -115,16 +132,4 @@ class ShowByCategoryView(LoginRequiredMixin, View):
             'categories': categories,
         }
         return render(request, self.template_name, context)
-    
-    
-# @login_required
-# def download(request, path):
-#     file_path = os.path.join(settings.MEDIA_ROOT, path)
-#     print(file_path)
-#     if os.path.exists(file_path):
-#         with open(file_path, 'rb') as fh:
-#             response = HttpResponse(fh.read(), content_type="name")
-#             response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
-#             return response
-#     raise Http404
-    
+

@@ -15,6 +15,18 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework import routers
+from users.views import CreateUserView
+from note_book.views import NotesAPIViewSet, TagsAPIViewSet
+from contact_book.views import ContactsAPIViewSet
+from file_manager.views import FileUploadDownloadApiView
+
+router = routers.SimpleRouter()
+router.register(r'users', CreateUserView)
+router.register(r'notes', NotesAPIViewSet)
+router.register(r'tags', TagsAPIViewSet)
+router.register(r'contacts', ContactsAPIViewSet)
+router.register(r'upload/download', FileUploadDownloadApiView)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -22,4 +34,6 @@ urlpatterns = [
     path('', include('file_manager.urls')),
     path('', include('contact_book.urls')),
     path('', include('users.urls')),
+    path('api/v1/', include(router.urls)),
+    path('api/v1/drf-auth/', include('rest_framework.urls')),
 ]

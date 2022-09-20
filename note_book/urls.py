@@ -1,11 +1,10 @@
 from django.urls import path
-from django.conf.urls import url
 from django.conf.urls.static import static
-from django.views.static import serve
 from django.conf import settings
 
-from . import views
-from .views import Index, NotesView, TagDeleteView, NoteDeleteView, AddTagView, DetailNoteView, AddNoteView, ChangeNoteStatusView, ChangeNameView, ChangeNoteDescView
+from .views import Index, NotesView, TagDeleteView, NoteDeleteView, AddTagView, DetailNoteView, AddNoteView, \
+    ChangeNoteStatusView, ChangeNameView, ChangeNoteDescView
+
 
 urlpatterns = [
     path('', Index.as_view(), name='index'),

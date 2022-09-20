@@ -1,16 +1,35 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import DeleteView, UpdateView
+from rest_framework import viewsets
+from rest_framework.permissions import IsAdminUser
 
 from .models import Note, NoteTag
 from .forms import AddTag, AddNote, ChangeNoteName, ChangeNoteDescription
 
 
 # Create your views here.
+from .serializers import NoteSerializer, NoteTagSerializer
 from .tasks import send_change_note_name, send_change_note_desc, send_change_note_status, send_delete_note, \
     send_delete_tag
+
+
+"""API"""
+
+
+class NotesAPIViewSet(viewsets.ModelViewSet):
+    queryset = Note.objects.all().order_by('id')
+    serializer_class = NoteSerializer
+    permission_classes = (IsAdminUser, )
+
+
+class TagsAPIViewSet(viewsets.ModelViewSet):
+    queryset = NoteTag.objects.all().order_by('note_id')
+    serializer_class = NoteTagSerializer
+    permission_classes = (IsAdminUser, )
 
 
 class Index(View):
@@ -18,6 +37,13 @@ class Index(View):
     
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, context={'title': 'Web assistant'})
+
+
+class UserAccessTestMixin(object):
+
+    def test_func(self):
+        obj = self.get_object()
+        return obj.user == self.request.user
 
 
 class NotesView(LoginRequiredMixin, View):
@@ -66,6 +92,14 @@ class NoteDeleteView(LoginRequiredMixin, DeleteView):
         response = super(NoteDeleteView, self).delete(request, *args, **kwargs)
         send_delete_note.delay(request.user.username, request.user.email, note.name)
         return response
+    
+    def get(self, request, *args, **kwargs):
+        contact = Note.objects.get(pk=self.kwargs['pk'])
+        if request.user.id == contact.user_id:
+            response = super(NoteDeleteView, self).get(request, *args, **kwargs)
+            return response
+        else:
+            return HttpResponse(status=404)
 
 
 class AddTagView(LoginRequiredMixin, View):
@@ -76,8 +110,12 @@ class AddTagView(LoginRequiredMixin, View):
     }
     
     def get(self, request, *args, **kwargs):
-        self.context.update({'id_note': self.kwargs['note_id']})
-        return render(request, self.template_name, context=self.context)
+        note_user_id = Note.objects.get(pk=self.kwargs['note_id']).user_id
+        if request.user.id == note_user_id:
+            self.context.update({'id_note': self.kwargs['note_id']})
+            return render(request, self.template_name, context=self.context)
+        else:
+            return HttpResponse(status=404)
     
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)
@@ -126,15 +164,18 @@ class DetailNoteView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         note_tags = self.tag_model.objects.filter(note_id=self.kwargs['note_id'])
         note = self.notes_model.objects.get(pk=self.kwargs['note_id'])
-        context = {
-            'id_note': self.kwargs['note_id'],
-            'tags': note_tags,
-            'note': note,
-        }
-        return render(request, 'pages/detail_note.html', context)
+        if request.user.id == note.user_id:
+            context = {
+                'id_note': self.kwargs['note_id'],
+                'tags': note_tags,
+                'note': note,
+            }
+            return render(request, 'pages/detail_note.html', context)
+        else:
+            return HttpResponse(status=404)
 
 
-class ChangeNameView(LoginRequiredMixin, UpdateView):
+class ChangeNameView(LoginRequiredMixin, UserAccessTestMixin, UserPassesTestMixin, UpdateView):
     model = Note
     template_name = 'pages/change_note_name.html'
     form_class = ChangeNoteName
@@ -146,7 +187,7 @@ class ChangeNameView(LoginRequiredMixin, UpdateView):
         return reverse_lazy('detail_note', kwargs={'note_id': note_id})
 
 
-class ChangeNoteDescView(LoginRequiredMixin, UpdateView):
+class ChangeNoteDescView(LoginRequiredMixin, UserAccessTestMixin, UserPassesTestMixin, UpdateView):
     model = Note
     template_name = 'pages/change_note_description.html'
     form_class = ChangeNoteDescription
@@ -158,7 +199,7 @@ class ChangeNoteDescView(LoginRequiredMixin, UpdateView):
         return reverse_lazy('detail_note', kwargs={'note_id': note_id})
 
 
-class ChangeNoteStatusView(LoginRequiredMixin, View):
+class ChangeNoteStatusView(LoginRequiredMixin, UserAccessTestMixin, UserPassesTestMixin, View):
 
     def get(self, request, *args, **kwargs):
         note_id = self.kwargs['pk']
@@ -180,6 +221,14 @@ class TagDeleteView(LoginRequiredMixin, DeleteView):
         send_delete_tag.delay(request.user.username, request.user.email, note_name, tag.tag)
         return response
     
+    def get(self, request, *args, **kwargs):
+        contact = Note.objects.get(pk=self.kwargs['note_id'])
+        if request.user.id == contact.user_id:
+            response = super(TagDeleteView, self).get(request, *args, **kwargs)
+            return response
+        else:
+            return HttpResponse(status=404)
+        
     def get_success_url(self):
         note_id = self.kwargs['note_id']
         return reverse_lazy('detail_note', kwargs={'note_id': note_id})

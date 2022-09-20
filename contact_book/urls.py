@@ -4,6 +4,7 @@ from django.conf import settings
 from .views import AddContactView, IndexView, PhoneDeleteView, ContactsView, ContactDeleteView, DetailContactView, \
     ChangeAddressView, ChangeBirthdayView, ChangeEmailView, ChangeNameView, AddPhoneView
 
+
 urlpatterns = [
     path('', IndexView.as_view(), name='index'),
     path('contact_book/', ContactsView.as_view(), name='contact_book'),

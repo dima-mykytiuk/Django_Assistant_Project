@@ -23,7 +23,7 @@ class Note(models.Model):
 
 class NoteTag(models.Model):
     tag = models.CharField(max_length=20)
-    note = models.ForeignKey(Note, on_delete=models.CASCADE)
+    note = models.ForeignKey(Note, related_name='tags', on_delete=models.CASCADE)
     updated_at = models.DateField(null=False, auto_now=True)
     
     def __str__(self):

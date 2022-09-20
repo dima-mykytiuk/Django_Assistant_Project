@@ -15,7 +15,7 @@ services:
       - db
   db:
     image: postgres
-    container_name: postgres_database
+    container_name: postgres_database_2
     env_file:
       - .env
     environment:
@@ -25,8 +25,6 @@ services:
     ports:
       - "5432:5432"
   celery:
-    restart: always
-    container_name: Celery
     build:
       context: .
     command: celery -A MyAssistantProject worker -l info
@@ -39,7 +37,7 @@ services:
       - rabbit_mq
 
   rabbit_mq:
-    container_name: RabbitMQ_Server
+    container_name: "RabbitMQ_Server"
     image: rabbitmq:3.10-management-alpine
     ports:
       - "5672:5672"

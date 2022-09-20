@@ -6,13 +6,25 @@ from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib.auth.tokens import default_token_generator as \
     token_generator
+from rest_framework import viewsets
+from rest_framework.permissions import IsAdminUser
+
 from .forms import SignUpForm, LoginForm
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils.http import urlsafe_base64_decode
+
+from .serializers import UserSerializer
 from .utils import send_email_for_verify
 from .models import Profile
 # Create your views here.
+
+
+class CreateUserView(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    model = User
+    permission_classes = (IsAdminUser, )
+    serializer_class = UserSerializer
 
 
 class IndexView(View):
@@ -26,14 +38,15 @@ class EmailVerify(View):
 
     def get(self, request, uidb64, token):
         user = self.get_user(uidb64)
-        profile = Profile.objects.create(user_id=user.id)
+        profile = Profile.objects.get(user_id=user.id)
         if user is not None and token_generator.check_token(user, token):
             profile.email_confirmed = True
             profile.save()
             user.save()
-            login(request, user)
-            return redirect('index')
-        return redirect('invalid_verify')
+            info(request, 'Email verified, now you can login')
+            return redirect('login')
+        info(request, 'Invalid verify, try to login again and u will receive new link')
+        return redirect('login')
 
     @staticmethod
     def get_user(uidb64):
@@ -64,7 +77,8 @@ class RegistrationView(View):
             password = form.cleaned_data.get('password1')
             user = authenticate(username=username, password=password)
             send_email_for_verify(request, user)
-            return redirect('confirm_email')
+            info(request, 'Please check your email to complete your registration.')
+            return redirect('login')
         context = {
             'form': form
         }
@@ -89,8 +103,8 @@ class LoginView(View):
             password = form.cleaned_data['password']
             user = authenticate(username=username, password=password)
             if user and check_password(password, user.password):
-                profile = Profile.objects.filter(user_id=user.id)
-                if len(profile) > 0:
+                profile = Profile.objects.get(user=user)
+                if profile.email_confirmed:
                     login(request, user)
                     return redirect('index')
                 else:

@@ -1120,3 +1120,45 @@ h6 {
     margin-bottom: 2%;
 }
 
+/*Login*/
+
+.text-center{
+    margin-top: 30%;
+    color: white;
+}
+
+.alert-primary{
+    color: white;
+    background-color: transparent;
+    border-color: transparent;
+}
+
+.btn-danger{
+    color: black;
+    background-color: white;
+    border-color: white;
+    margin-left: 25%;
+    margin-top: 5%;
+}
+
+.btn-danger:hover{
+    background-color: grey;
+    color: black;
+    text-decoration: none;
+    border-color: black;
+}
+
+.btn-outline-secondary{
+    color: black;
+    background-color: white;
+    border-color: white;
+    margin-left: 15%;
+    margin-top: 5%;
+}
+
+.btn-outline-secondary:hover{
+    background-color: grey;
+    color: black;
+    text-decoration: none;
+    border-color: black;
+}

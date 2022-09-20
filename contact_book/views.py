@@ -1,13 +1,17 @@
 from datetime import datetime
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
-from django.views.generic import DeleteView, UpdateView, CreateView
+from django.views.generic import DeleteView, UpdateView
+from rest_framework import viewsets
+from rest_framework.permissions import IsAdminUser
 
 from .models import Contact, ContactPhone
 from .forms import AddContact, ChangeName, ChangeBirthday, AddPhone, ChangeEmail, ChangeAddress
 from django.views import View
 
+from .serializers import ContactSerializer
 from .tasks import send_delete_contact, send_delete_phone, send_change_name, send_change_email, send_change_address, \
     send_change_birthday
 
@@ -15,11 +19,30 @@ from .tasks import send_delete_contact, send_delete_phone, send_change_name, sen
 # Create your views here.
 
 
+"""API"""
+
+
+class ContactsAPIViewSet(viewsets.ModelViewSet):
+    queryset = Contact.objects.all().order_by('id')
+    serializer_class = ContactSerializer
+    permission_classes = (IsAdminUser, )
+    
+
+"""Views"""
+
+
 class IndexView(View):
     template_name = 'pages/index.html'
 
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, context={'title': 'Web assistant'})
+    
+
+class UserAccessTestMixin(object):
+
+    def test_func(self):
+        obj = self.get_object()
+        return obj.user == self.request.user
 
 
 class AddContactView(LoginRequiredMixin, View):
@@ -53,8 +76,7 @@ class AddContactView(LoginRequiredMixin, View):
 
 class ContactsView(LoginRequiredMixin, View):
     template_name = 'pages/contact_book.html'
-    phones = ContactPhone.objects.all()
-    context = {'phones': phones}
+    context = {}
     
     def get(self, request, *args, **kwargs):
         logged_user_id = request.user.id
@@ -106,21 +128,31 @@ class ContactDeleteView(LoginRequiredMixin, DeleteView):
         response = super(ContactDeleteView, self).delete(request, *args, **kwargs)
         send_delete_contact.delay(request.user.username, request.user.email, contact_name)
         return response
+    
+    def get(self, request, *args, **kwargs):
+        contact = Contact.objects.get(pk=self.kwargs['pk'])
+        if request.user.id == contact.user_id:
+            response = super(ContactDeleteView, self).get(request, *args, **kwargs)
+            return response
+        else:
+            return HttpResponse(status=404)
 
 
 class DetailContactView(LoginRequiredMixin, View):
     phones_model = ContactPhone
     contact_model = Contact
+    context = {}
     
     def get(self, request, *args, **kwargs):
         phones = self.phones_model.objects.filter(contact_id=self.kwargs['contact_id'])
         contact = self.contact_model.objects.get(pk=self.kwargs['contact_id'])
-        context = {
-            'id_contact': self.kwargs['contact_id'],
-            'phones': phones,
-            'contact': contact,
-        }
-        return render(request, 'pages/detail_contact.html', context)
+        if request.user.id == contact.user_id:
+            self.context.update({'id_contact': self.kwargs['contact_id']})
+            self.context.update({'phones': phones})
+            self.context.update({'contact': contact})
+            return render(request, 'pages/detail_contact.html', self.context)
+        else:
+            return HttpResponse(status=404)
 
 
 class AddPhoneView(LoginRequiredMixin, View):
@@ -128,12 +160,16 @@ class AddPhoneView(LoginRequiredMixin, View):
     template_name = 'pages/add_phone.html'
     
     def get(self, request, *args, **kwargs):
-        context = {
-            'form': AddPhone(),
-            'id_contact': self.kwargs['contact_id']
-        }
-        return render(request, self.template_name, context=context)
-    
+        contact_user_id = Contact.objects.get(pk=self.kwargs['contact_id']).user_id
+        if request.user.id == contact_user_id:
+            context = {
+                'form': AddPhone(),
+                'id_contact': self.kwargs['contact_id']
+            }
+            return render(request, self.template_name, context=context)
+        else:
+            return HttpResponse(status=404)
+            
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)
         if form.is_valid():
@@ -143,11 +179,10 @@ class AddPhoneView(LoginRequiredMixin, View):
             phone_to_add.save()
             form.send_email(request.user.username, request.user.email, contact.name)
             return redirect('detail_contact', contact_id=self.kwargs['contact_id'])
-        
         return render(request, self.template_name, {'form': form})
     
 
-class ChangeNameView(LoginRequiredMixin, UpdateView):
+class ChangeNameView(LoginRequiredMixin, UserAccessTestMixin, UserPassesTestMixin, UpdateView):
     model = Contact
     template_name = 'pages/change_contact_name.html'
     form_class = ChangeName
@@ -158,7 +193,7 @@ class ChangeNameView(LoginRequiredMixin, UpdateView):
         return reverse_lazy('detail_contact', kwargs={'contact_id': contact_id})
 
 
-class ChangeEmailView(LoginRequiredMixin, UpdateView):
+class ChangeEmailView(LoginRequiredMixin, UserAccessTestMixin, UserPassesTestMixin, UpdateView):
     model = Contact
     template_name = 'pages/change_email.html'
     form_class = ChangeEmail
@@ -170,7 +205,7 @@ class ChangeEmailView(LoginRequiredMixin, UpdateView):
         return reverse_lazy('detail_contact', kwargs={'contact_id': contact_id})
 
 
-class ChangeBirthdayView(LoginRequiredMixin, UpdateView):
+class ChangeBirthdayView(LoginRequiredMixin, UserAccessTestMixin, UserPassesTestMixin, UpdateView):
     model = Contact
     template_name = 'pages/change_birthday.html'
     form_class = ChangeBirthday
@@ -182,7 +217,7 @@ class ChangeBirthdayView(LoginRequiredMixin, UpdateView):
         return reverse_lazy('detail_contact', kwargs={'contact_id': contact_id})
 
 
-class ChangeAddressView(LoginRequiredMixin, UpdateView):
+class ChangeAddressView(LoginRequiredMixin, UserAccessTestMixin, UserPassesTestMixin, UpdateView):
     model = Contact
     template_name = 'pages/change_address.html'
     form_class = ChangeAddress
@@ -199,10 +234,18 @@ class PhoneDeleteView(LoginRequiredMixin, DeleteView):
     template_name = 'pages/delete_form.html'
     
     def delete(self, request, *args, **kwargs):
-        response = super(PhoneDeleteView, self).delete(request, *args, **kwargs)
         contact = Contact.objects.get(pk=self.kwargs['contact_id'])
+        response = super(PhoneDeleteView, self).delete(request, *args, **kwargs)
         send_delete_phone.delay(request.user.username, request.user.email, contact.name)
         return response
+    
+    def get(self, request, *args, **kwargs):
+        contact = Contact.objects.get(pk=self.kwargs['contact_id'])
+        if request.user.id == contact.user_id:
+            response = super(PhoneDeleteView, self).get(request, *args, **kwargs)
+            return response
+        else:
+            return HttpResponse(status=404)
     
     def get_success_url(self):
         contact_id = self.kwargs['contact_id']
