@@ -14,6 +14,3 @@ urlpatterns = [
     path('file_manager/show_by_category/<category_id>', ShowByCategoryView.as_view(), name='show_by_category'),
     url(r'^download/(?P<path>.*)$/', serve, {'document_root': settings.MEDIA_ROOT}),
 ]
-
-urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

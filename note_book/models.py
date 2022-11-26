@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 
 
 class Note(models.Model):
-    name = models.CharField(max_length=50, null=False)
+    name = models.CharField(max_length=15, null=False)
     description = models.CharField(max_length=150, null=False)
     done = models.BooleanField(default=False)
     updated_at = models.DateField(null=False, auto_now=True)

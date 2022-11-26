@@ -18,6 +18,3 @@ urlpatterns = [
     path('note_book/change_note_status/<int:pk>', ChangeNoteStatusView.as_view(), name='change_note_status'),
     path('note_book/detail_note/<int:note_id>/delete_tag/<int:pk>', TagDeleteView.as_view(), name='delete_note_tags'),
 ]
-
-urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

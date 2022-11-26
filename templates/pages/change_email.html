@@ -7,7 +7,7 @@ Add income :: {{ block.super }}
 {% block content %}
 <h1 class="form_title">Change email</h1>
 <div class="form_content">
-    <form style="width: 45%" action="{% url 'change_email' object.id %}" method="post">
+    <form style="width: 45%" action="{% url 'change_email' id_contact %}" method="post">
         {% csrf_token %}
         {{ form|crispy }}
         <button type="submit" class="submit_form_btn">Change email</button>

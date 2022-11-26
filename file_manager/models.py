@@ -33,3 +33,4 @@ class FileManager(models.Model):
         
     def filename(self):
         return os.path.basename(self.file_name.name)
+    

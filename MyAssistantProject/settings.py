@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', '')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [os.environ.get('ALLOWED_HOSTS', '')]
 
@@ -80,16 +80,6 @@ WSGI_APPLICATION = 'MyAssistantProject.wsgi.application'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 DATABASES = {
-    # to work without docker
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.postgresql_psycopg2',
-    #     'NAME': os.environ.get('DB_NAME', ''),
-    #     'USER': os.environ.get('DB_USER', ''),
-    #     'PASSWORD': os.environ.get('DB_PASS', ''),
-    #     'HOST': "localhost",
-    #     'PORT': os.environ.get('DB_PORT', ''),
-    # }
-    # to work with docker
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': str(os.environ["DB_NAME"]),
@@ -138,10 +128,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static')
-]
 
+if DEBUG:
+    STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+else:
+    STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
@@ -175,18 +166,9 @@ EMAIL_PORT = 587
 DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_FROM_USER', '')
 SERVER_EMAIL = os.environ.get('EMAIL_FROM_USER', '')
 
-# CELERY_CACHE_BACKEND = 'default'
-# CACHES = {
-#     'default': {
-#         'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
-#         'LOCATION': 'my_cache_table',
-#     }
-# }
 # Celery
 accept_content = ['json']
-# result_backend = 'django-db'
-# cache_backend = 'django-cache'
-CELERY_broker_url = os.environ.get('CELERY_BROKER_URL', '')
+CELERY_broker_url = os.environ.get('CELERY_BROKER_URL_LOCAL', '')
 task_serializer = 'json'
 result_serializer = 'json'
 timezone = 'Europe/Amsterdam'

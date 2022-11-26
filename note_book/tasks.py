@@ -10,9 +10,9 @@ logger = get_task_logger(__name__)
 
 
 @app.task(name='send_about_new_note')
-def send_about_new_note(user, note_name, description, tags):
+def send_about_new_note(user, note_name):
     logger.info("Sent email")
-    return send_email_about_new_note(user, note_name, description, tags)
+    return send_email_about_new_note(user, note_name)
 
 
 @app.task(name='send_delete_note')

@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 class Contact(models.Model):
     name = models.CharField(max_length=40, null=False)
     birthday = models.DateField(null=False)
-    email = models.EmailField(max_length=50, unique=True, null=False)
+    email = models.EmailField(max_length=50, unique=False, null=False)
     address = models.CharField(max_length=50)
     updated_at = models.DateField(null=False, auto_now=True)
     created_at = models.DateField(null=False, auto_now_add=True)
@@ -23,7 +23,7 @@ class Contact(models.Model):
 
 
 class ContactPhone(models.Model):
-    phone = models.CharField(max_length=13)
+    phone = models.CharField(max_length=13, unique=False)
     contact = models.ForeignKey(Contact, related_name='phones', on_delete=models.CASCADE)
     updated_at = models.DateField(null=False, auto_now=True)
     
@@ -34,3 +34,4 @@ class ContactPhone(models.Model):
         verbose_name = 'Phone'
         verbose_name_plural = 'Phones'
         ordering = ['-updated_at']
+        

@@ -18,6 +18,3 @@ urlpatterns = [
     path('contact_book/change_email/<int:pk>/', ChangeEmailView.as_view(), name='change_email'),
     path('contact_book/change_address/<int:pk>/', ChangeAddressView.as_view(), name='change_address'),
 ]
-
-urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

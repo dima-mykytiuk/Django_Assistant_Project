@@ -10,9 +10,9 @@ logger = get_task_logger(__name__)
 
 
 @app.task(name='send_add_contact_email')
-def send_add_contact_email(user, name, email, phone):
+def send_add_contact_email(user_email, name, user):
     logger.info("Sent email")
-    return send_email_about_contact(user, name, email, phone)
+    return send_email_about_contact(user_email, name, user)
 
 
 @app.task(name='send_delete_contact')

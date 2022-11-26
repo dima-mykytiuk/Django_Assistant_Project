@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}
-Contact info::{{ block.super }}
+Note info::{{ block.super }}
 {% endblock %}
 
 {% block content %}
@@ -35,7 +35,7 @@ Contact info::{{ block.super }}
         <div class="flex-row-item-notes">
             <div class="note_detail_info">
                 <h3 style="width: 20%;">Description:</h3>
-                <h3 style="width: 40%;">{{ note.description }}</h3>
+                <h3 style="width: 40%;">{% for desc in note_description %} {{ desc }}{% endfor %}</h3>
                 <a class="change_note_btn" href="{% url 'change_note_description' note.id %}">change</a>
             </div>
         </div>

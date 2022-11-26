@@ -13,6 +13,15 @@ services:
       - "8000:8000"
     depends_on:
       - db
+  makemigration:
+    build: .
+    container_name: django_migrations
+    command: bash -c "python manage.py makemigrations && python manage.py migrate && python manage.py collectstatic --no-input --clear"
+    volumes:
+      - .:/code
+    depends_on:
+      - web
+      - db
   db:
     image: postgres
     container_name: postgres_database_2

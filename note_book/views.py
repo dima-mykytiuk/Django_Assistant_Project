@@ -26,24 +26,11 @@ class NotesAPIViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminUser, )
 
 
-class TagsAPIViewSet(viewsets.ModelViewSet):
-    queryset = NoteTag.objects.all().order_by('note_id')
-    serializer_class = NoteTagSerializer
-    permission_classes = (IsAdminUser, )
-
-
 class Index(View):
     template_name = 'pages/index.html'
     
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, context={'title': 'Web assistant'})
-
-
-class UserAccessTestMixin(object):
-
-    def test_func(self):
-        obj = self.get_object()
-        return obj.user == self.request.user
 
 
 class NotesView(LoginRequiredMixin, View):
@@ -164,22 +151,29 @@ class DetailNoteView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         note_tags = self.tag_model.objects.filter(note_id=self.kwargs['note_id'])
         note = self.notes_model.objects.get(pk=self.kwargs['note_id'])
+        n = 35
+        chunks = [note.description[i:i + n] for i in range(0, len(note.description), n)]
         if request.user.id == note.user_id:
             context = {
                 'id_note': self.kwargs['note_id'],
                 'tags': note_tags,
                 'note': note,
+                'note_description': chunks,
             }
             return render(request, 'pages/detail_note.html', context)
         else:
             return HttpResponse(status=404)
 
 
-class ChangeNameView(LoginRequiredMixin, UserAccessTestMixin, UserPassesTestMixin, UpdateView):
+class ChangeNameView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Note
     template_name = 'pages/change_note_name.html'
     form_class = ChangeNoteName
-
+    
+    def test_func(self):
+        obj = self.get_object()
+        return obj.user == self.request.user
+    
     def get_success_url(self):
         note_id = self.kwargs['pk']
         note_name = Note.objects.get(pk=note_id).name
@@ -187,11 +181,15 @@ class ChangeNameView(LoginRequiredMixin, UserAccessTestMixin, UserPassesTestMixi
         return reverse_lazy('detail_note', kwargs={'note_id': note_id})
 
 
-class ChangeNoteDescView(LoginRequiredMixin, UserAccessTestMixin, UserPassesTestMixin, UpdateView):
+class ChangeNoteDescView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Note
     template_name = 'pages/change_note_description.html'
     form_class = ChangeNoteDescription
-
+    
+    def test_func(self):
+        obj = self.get_object()
+        return obj.user == self.request.user
+    
     def get_success_url(self):
         note_id = self.kwargs['pk']
         note_name = Note.objects.get(pk=note_id).name
@@ -199,15 +197,20 @@ class ChangeNoteDescView(LoginRequiredMixin, UserAccessTestMixin, UserPassesTest
         return reverse_lazy('detail_note', kwargs={'note_id': note_id})
 
 
-class ChangeNoteStatusView(LoginRequiredMixin, UserAccessTestMixin, UserPassesTestMixin, View):
-
+class ChangeNoteStatusView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Note
+    
+    def test_func(self):
+        obj = self.get_object()
+        return obj.user == self.request.user
+    
     def get(self, request, *args, **kwargs):
         note_id = self.kwargs['pk']
         note = Note.objects.get(pk=note_id)
         note.done = False if note.done else True
         note.save()
         send_change_note_status.delay(self.request.user.username, self.request.user.email, note.name, note.done)
-        return redirect('detail_note', note_id=note_id)
+        return reverse_lazy('detail_note', kwargs={'note_id': note_id})
 
 
 class TagDeleteView(LoginRequiredMixin, DeleteView):

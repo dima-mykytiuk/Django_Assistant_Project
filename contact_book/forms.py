@@ -3,9 +3,13 @@ from datetime import datetime
 from .models import Contact, ContactPhone
 from django.core.validators import validate_email, ValidationError
 from .tasks import send_add_contact_email, send_add_phone
+from django.contrib.auth.models import User
 
 
 class AddContact(forms.Form):
+    def __init__(self, user, *args, **kwargs):
+        self.user = user
+        super(AddContact, self).__init__(*args, **kwargs)
     name = forms.CharField(max_length=40, widget=forms.TextInput(attrs={'class': 'contact_name_form'}))
     email = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'email_form'}))
     address = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'address_form'}))
@@ -13,7 +17,8 @@ class AddContact(forms.Form):
     birthday = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'date_form'}))
     
     def send_email(self, user_email):
-        send_add_contact_email.delay(user_email, self.cleaned_data['name'], self.cleaned_data['email'], self.cleaned_data['phone'])
+        user = User.objects.get(id=self.user)
+        send_add_contact_email.delay(user_email, user.username, self.cleaned_data['name'])
     
     def clean(self):
 
@@ -24,11 +29,12 @@ class AddContact(forms.Form):
         address = self.cleaned_data['address']
         phones = [phn.strip() for phn in self.cleaned_data['phone'].split(',')]
         birthday = self.cleaned_data['birthday']
-
         date_delta = (datetime.now().date() - birthday).days
-        all_emails = [cnt.email for cnt in Contact.objects.all()]
-        all_phones = [phn.phone for phn in ContactPhone.objects.all()]
-
+        all_emails = [cnt.email for cnt in Contact.objects.filter(user_id=self.user)]
+        contact_ids = [cnt.id for cnt in Contact.objects.filter(user_id=self.user)]
+        all_phones = []
+        for contact in contact_ids:
+            all_phones.append([cnt.phone for cnt in ContactPhone.objects.filter(contact_id=contact)])
         if len(name) > 40:
             self._errors['name'] = self.error_class(['Name length is maximum 40 characters'])
         if len(email) > 50:
@@ -48,16 +54,17 @@ class AddContact(forms.Form):
         if len(phones) > 4:
             self._errors['phone'] = self.error_class(['Maximum amount of phones is 4'])
         for this_phone in phones:
-            if len(this_phone) > 13:
+            if len(this_phone) != 13:
                 self._errors['phone'] = self.error_class(['Phone length is maximum 13 characters'])
-            elif this_phone in all_phones:
-                self._errors['phone'] = self.error_class(['Contact with this phone is already in the book'])
-                break
+            for ls_phone in all_phones:
+                for phone in ls_phone:
+                    if this_phone in phone:
+                        self._errors['phone'] = self.error_class(['Contact with this phone is already in the book'])
+                        break
             if not this_phone[1:].isdigit() or not this_phone.startswith('+'):
                 self._errors['phone'] = self.error_class(['Phone must start with + and contain only digits'])
             if len(this_phone) < 13:
                 self._errors['phone'] = self.error_class(['Phone length must be 13 characters'])
-
         return self.cleaned_data
 
 
@@ -104,6 +111,9 @@ class ChangeBirthday(forms.ModelForm):
 
 
 class AddPhone(forms.Form):
+    def __init__(self, user, *args, **kwargs):
+        self.user = user
+        super(AddPhone, self).__init__(*args, **kwargs)
     phone = forms.CharField(max_length=40, widget=forms.TextInput(attrs={'class': 'email_form'}))
     
     @staticmethod
@@ -115,9 +125,14 @@ class AddPhone(forms.Form):
         super(AddPhone, self).clean()
         
         phone = self.cleaned_data['phone']
-        all_phones = [phn.phone for phn in ContactPhone.objects.all()]
-        if phone in all_phones:
-            self._errors['phone'] = self.error_class(['Contact with this phone is already in the book'])
+        contact_ids = [cnt.id for cnt in Contact.objects.filter(user_id=self.user)]
+        all_phones = []
+        for contact in contact_ids:
+            all_phones.append([phn.phone for phn in ContactPhone.objects.filter(contact_id=contact)])
+        for ls_phone in all_phones:
+            for old_phone in ls_phone:
+                if phone in old_phone:
+                    self._errors['phone'] = self.error_class(['Contact with this phone is already in the book'])
         if len(phone) > 13:
             self._errors['phone'] = self.error_class(['Phone length is maximum 13 characters'])
         if not phone[1:].isdigit() or not phone.startswith('+'):
@@ -127,7 +142,10 @@ class AddPhone(forms.Form):
 
 
 class ChangeEmail(forms.ModelForm):
-    
+    def __init__(self, user, *args, **kwargs):
+        self.user = user
+        super(ChangeEmail, self).__init__(*args, **kwargs)
+        
     class Meta:
         model = Contact
         fields = ('email',)
@@ -137,9 +155,7 @@ class ChangeEmail(forms.ModelForm):
         super(ChangeEmail, self).clean()
         
         email = self.cleaned_data['email']
-        
-        all_emails = [cnt.email for cnt in Contact.objects.all()]
-        
+        all_emails = [cnt.email for cnt in Contact.objects.filter(user_id=self.user)]
         if len(email) > 50:
             self._errors['email'] = self.error_class(['Email length is maximum 25 characters'])
         if email in all_emails:

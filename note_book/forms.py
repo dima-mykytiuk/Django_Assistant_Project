@@ -4,7 +4,7 @@ from .tasks import send_about_new_note, send_add_tag
 
 
 class AddTag(forms.Form):
-    tag = forms.CharField(max_length=60, widget=forms.TextInput(attrs={'class': 'tag_form'}))
+    tag = forms.CharField(max_length=20, widget=forms.TextInput(attrs={'class': 'tag_form'}))
     
     @staticmethod
     def send_email(user, user_email, note_name):
@@ -24,12 +24,12 @@ class AddTag(forms.Form):
 
 
 class AddNote(forms.Form):
-    note = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'note_name'}))
+    note = forms.CharField(max_length=15, widget=forms.TextInput(attrs={'class': 'note_name'}))
     description = forms.CharField(max_length=150, widget=forms.Textarea(attrs={'class': 'note_desc'}))
     tag = forms.CharField(max_length=1000, widget=forms.TextInput(attrs={'class': 'tags'}))
     
     def send_email(self, user_email):
-        send_about_new_note.delay(user_email, self.cleaned_data['note'], self.cleaned_data['description'], self.cleaned_data['tag'])
+        send_about_new_note.delay(user_email, self.cleaned_data['note'])
         
     def clean(self):
 
@@ -39,8 +39,8 @@ class AddNote(forms.Form):
         tags = [tg.strip() for tg in self.cleaned_data['tag'].split(',')]
         description = self.cleaned_data['description']
 
-        if len(note_to_add) > 50:
-            self._errors['note'] = self.error_class(['Note name length is maximum 50 characters'])
+        if len(note_to_add) > 15:
+            self._errors['note'] = self.error_class(['Note name length is maximum 15 characters'])
         if len(description) > 150:
             self._errors['description'] = self.error_class(['Note description length is maximum 150 characters'])
         if len(tags) > 4:
@@ -64,8 +64,8 @@ class ChangeNoteName(forms.ModelForm):
         
         new_name = self.cleaned_data['name']
         
-        if len(new_name) > 50:
-            self._errors['name'] = self.error_class(['Note name length is maximum 50 characters'])
+        if len(new_name) > 15:
+            self._errors['name'] = self.error_class(['Note name length is maximum 15 characters'])
         
         return self.cleaned_data
 
@@ -85,3 +85,4 @@ class ChangeNoteDescription(forms.ModelForm):
             self._errors['description'] = self.error_class(['Note description length is maximum 150 characters'])
         
         return self.cleaned_data
+    

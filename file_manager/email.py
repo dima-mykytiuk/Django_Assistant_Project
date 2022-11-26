@@ -6,9 +6,9 @@ from django.conf import settings
 def send_email_about_upload_file(user, mail, file_name):
     context = {
         'user': user,
-        'file_name': file_name,
+        'message': f"You successfully upload file {file_name} !",
     }
-    email_body = render_to_string('email_notifications/upload_file_notification.html', context)
+    email_body = render_to_string('email_notifications/email_notification.html', context)
     email = EmailMessage(
         'New file upload',
         email_body,
@@ -21,10 +21,9 @@ def send_email_about_upload_file(user, mail, file_name):
 def send_email_about_file_delete(user, mail, file_name):
     context = {
         'user': user,
-        'mail': mail,
-        'file_name': file_name
+        'message': f"You successfully deleted file {file_name} !",
     }
-    email_body = render_to_string('email_notifications/delete_file_notification.html', context)
+    email_body = render_to_string('email_notifications/email_notification.html', context)
     email = EmailMessage(
         'Delete File',
         email_body,

@@ -36,13 +36,6 @@ class IndexView(View):
 
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, context={'title': 'Web assistant'})
-    
-
-class UserAccessTestMixin(object):
-
-    def test_func(self):
-        obj = self.get_object()
-        return obj.user == self.request.user
 
 
 class AddContactView(LoginRequiredMixin, View):
@@ -50,12 +43,12 @@ class AddContactView(LoginRequiredMixin, View):
     template_name = 'pages/add_contact.html'
 
     def get(self, request, *args, **kwargs):
-        form = AddContact()
+        form = AddContact(user=request.user.id)
         return render(request, self.template_name, {'form': form})
     
     def post(self, request, *args, **kwargs):
         logged_user_id = request.user.id
-        form = self.form_class(request.POST)
+        form = self.form_class(request.user.id, request.POST)
         if form.is_valid():
             name = form.cleaned_data['name']
             birthday = form.cleaned_data['birthday']
@@ -65,10 +58,10 @@ class AddContactView(LoginRequiredMixin, View):
             contact = Contact(user_id=logged_user_id, name=name, birthday=birthday, email=email, address=address)
             contact.save()
             list_of_phones = phones.split(',')
-            form.send_email(request.user.email)
             for phone in list_of_phones:
                 added_phone = ContactPhone(contact_id=contact.id, phone=phone.strip())
                 added_phone.save()
+            form.send_email(request.user.email)
             return redirect('contact_book')
 
         return render(request, self.template_name, {'form': form})
@@ -163,7 +156,7 @@ class AddPhoneView(LoginRequiredMixin, View):
         contact_user_id = Contact.objects.get(pk=self.kwargs['contact_id']).user_id
         if request.user.id == contact_user_id:
             context = {
-                'form': AddPhone(),
+                'form': AddPhone(user=request.user.id),
                 'id_contact': self.kwargs['contact_id']
             }
             return render(request, self.template_name, context=context)
@@ -171,21 +164,25 @@ class AddPhoneView(LoginRequiredMixin, View):
             return HttpResponse(status=404)
             
     def post(self, request, *args, **kwargs):
-        form = self.form_class(request.POST)
+        form = self.form_class(request.user.id, request.POST)
         if form.is_valid():
             phone = request.POST['phone']
             phone_to_add = ContactPhone(contact_id=self.kwargs['contact_id'], phone=phone.strip())
             contact = Contact.objects.get(pk=self.kwargs['contact_id'])
             phone_to_add.save()
             form.send_email(request.user.username, request.user.email, contact.name)
-            return redirect('detail_contact', contact_id=self.kwargs['contact_id'])
-        return render(request, self.template_name, {'form': form})
+            return redirect('detail_contact', self.kwargs['contact_id'])
+        return render(request, self.template_name, {'form': form, 'id_contact': self.kwargs['contact_id']})
     
 
-class ChangeNameView(LoginRequiredMixin, UserAccessTestMixin, UserPassesTestMixin, UpdateView):
+class ChangeNameView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Contact
     template_name = 'pages/change_contact_name.html'
     form_class = ChangeName
+
+    def test_func(self):
+        obj = self.get_object()
+        return obj.user == self.request.user
     
     def get_success_url(self):
         contact_id = self.kwargs['pk']
@@ -193,23 +190,47 @@ class ChangeNameView(LoginRequiredMixin, UserAccessTestMixin, UserPassesTestMixi
         return reverse_lazy('detail_contact', kwargs={'contact_id': contact_id})
 
 
-class ChangeEmailView(LoginRequiredMixin, UserAccessTestMixin, UserPassesTestMixin, UpdateView):
+class ChangeEmailView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Contact
     template_name = 'pages/change_email.html'
     form_class = ChangeEmail
+    
+    def test_func(self):
+        obj = self.get_object()
+        return obj.user == self.request.user
+    
+    def get(self, request, *args, **kwargs):
+        contact_user = self.model.objects.get(pk=self.kwargs['pk'])
+        if request.user.id == contact_user.user_id:
+            context = {
+                'form': self.form_class(initial={'email': contact_user.email}, user=request.user.id),
+                'id_contact': self.kwargs['pk']
+            }
+            return render(request, self.template_name, context=context)
+        else:
+            return HttpResponse(status=404)
 
-    def get_success_url(self):
-        contact_id = self.kwargs['pk']
-        contact = Contact.objects.get(pk=contact_id)
-        send_change_email.delay(self.request.user.username, self.request.user.email, contact.name)
-        return reverse_lazy('detail_contact', kwargs={'contact_id': contact_id})
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.user.id, request.POST)
+        if form.is_valid():
+            user_email = request.POST['email']
+            contact = Contact.objects.get(pk=self.kwargs['pk'])
+            contact.email = user_email
+            contact.save()
+            send_change_email(request.user.username, request.user.email, contact.name)
+            return redirect('detail_contact', self.kwargs['pk'])
+        return render(request, self.template_name, {'form': form, 'id_contact': self.kwargs['pk']})
 
 
-class ChangeBirthdayView(LoginRequiredMixin, UserAccessTestMixin, UserPassesTestMixin, UpdateView):
+class ChangeBirthdayView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Contact
     template_name = 'pages/change_birthday.html'
     form_class = ChangeBirthday
-
+    
+    def test_func(self):
+        obj = self.get_object()
+        return obj.user == self.request.user
+    
     def get_success_url(self):
         contact_id = self.kwargs['pk']
         contact = Contact.objects.get(pk=contact_id)
@@ -217,11 +238,15 @@ class ChangeBirthdayView(LoginRequiredMixin, UserAccessTestMixin, UserPassesTest
         return reverse_lazy('detail_contact', kwargs={'contact_id': contact_id})
 
 
-class ChangeAddressView(LoginRequiredMixin, UserAccessTestMixin, UserPassesTestMixin, UpdateView):
+class ChangeAddressView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Contact
     template_name = 'pages/change_address.html'
     form_class = ChangeAddress
-
+    
+    def test_func(self):
+        obj = self.get_object()
+        return obj.user == self.request.user
+    
     def get_success_url(self):
         contact_id = self.kwargs['pk']
         contact = Contact.objects.get(pk=contact_id)

@@ -21,7 +21,7 @@ def send_email_for_verify(request, user):
     if Profile.objects.filter(user=user).exists() is False:
         Profile.objects.create(user=user, email_confirmed=False)
     message = render_to_string(
-        'pages/verify_email.html',
+        'email_notifications/verify_email.html',
         context=context,
     )
     email = EmailMessage(

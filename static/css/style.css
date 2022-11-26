@@ -735,15 +735,6 @@ h6 {
     text-decoration: none;
 }
 
-.username_name:before {
-    content: url(../images/user.ico);
-    right: -44px;
-    top: -120px;
-    position: absolute;
-    display: block;
-    transform: scale(0.090);
-}
-
 .header {
     width: 100%;
     padding-top: 30px;
