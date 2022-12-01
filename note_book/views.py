@@ -10,9 +10,8 @@ from rest_framework.permissions import IsAdminUser
 from .models import Note, NoteTag
 from .forms import AddTag, AddNote, ChangeNoteName, ChangeNoteDescription
 
-
 # Create your views here.
-from .serializers import NoteSerializer, NoteTagSerializer
+from .serializers import NoteSerializer
 from .tasks import send_change_note_name, send_change_note_desc, send_change_note_status, send_delete_note, \
     send_delete_tag
 
@@ -164,6 +163,16 @@ class DetailNoteView(LoginRequiredMixin, View):
         else:
             return HttpResponse(status=404)
 
+    def post(self, request, *args, **kwargs):
+        note = Note.objects.get(pk=self.kwargs['note_id'])
+        if request.user.id == note.user_id:
+            note.done = False if note.done else True
+            note.save()
+            send_change_note_status.delay(self.request.user.username, self.request.user.email, note.name, note.done)
+            return redirect('detail_note', note_id=self.kwargs['note_id'])
+        else:
+            return HttpResponse(status=404)
+
 
 class ChangeNameView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Note
@@ -197,22 +206,6 @@ class ChangeNoteDescView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return reverse_lazy('detail_note', kwargs={'note_id': note_id})
 
 
-class ChangeNoteStatusView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
-    model = Note
-    
-    def test_func(self):
-        obj = self.get_object()
-        return obj.user == self.request.user
-    
-    def get(self, request, *args, **kwargs):
-        note_id = self.kwargs['pk']
-        note = Note.objects.get(pk=note_id)
-        note.done = False if note.done else True
-        note.save()
-        send_change_note_status.delay(self.request.user.username, self.request.user.email, note.name, note.done)
-        return reverse_lazy('detail_note', kwargs={'note_id': note_id})
-
-
 class TagDeleteView(LoginRequiredMixin, DeleteView):
     model = NoteTag
     template_name = 'pages/delete_tag.html'
@@ -235,3 +228,4 @@ class TagDeleteView(LoginRequiredMixin, DeleteView):
     def get_success_url(self):
         note_id = self.kwargs['note_id']
         return reverse_lazy('detail_note', kwargs={'note_id': note_id})
+    

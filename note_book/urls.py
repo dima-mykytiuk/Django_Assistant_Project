@@ -3,8 +3,7 @@ from django.conf.urls.static import static
 from django.conf import settings
 
 from .views import Index, NotesView, TagDeleteView, NoteDeleteView, AddTagView, DetailNoteView, AddNoteView, \
-    ChangeNoteStatusView, ChangeNameView, ChangeNoteDescView
-
+    ChangeNameView, ChangeNoteDescView
 
 urlpatterns = [
     path('', Index.as_view(), name='index'),
@@ -15,6 +14,5 @@ urlpatterns = [
     path('note_book/detail_note/<note_id>', DetailNoteView.as_view(), name='detail_note'),
     path('note_book/change_note/<int:pk>', ChangeNameView.as_view(), name='change_note_name'),
     path('note_book/change_note_description/<int:pk>', ChangeNoteDescView.as_view(), name='change_note_description'),
-    path('note_book/change_note_status/<int:pk>', ChangeNoteStatusView.as_view(), name='change_note_status'),
     path('note_book/detail_note/<int:note_id>/delete_tag/<int:pk>', TagDeleteView.as_view(), name='delete_note_tags'),
 ]
