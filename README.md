@@ -28,7 +28,31 @@ Also in this project, the Django Rest Framework functionality is implemented, ac
 Small Demo of project: https://www.youtube.com/watch?v=Z2Alz_LjSwk
 
 ### Installation
-... To Be Continued
+1. You need to have pre installed IDE and Docker
+2. Create new project and clone project from git in your IDE
+3. You need to have google email with 2-FA to create app password for sending notifications:
+  - Login to your Gmail account
+  - Click on manage your account
+  - Select the security option and enable the two factor authentication (2-FA)
+  - Once the 2-FA option is available, you now have the option to create an app password
+  - Create app password following this instruction [Link](https://support.google.com/mail/answer/185833?hl=en)
+4. Create .env file in project root and fill in the file like this example:<br />
+DB_NAME=ImageClassifier<br />
+DB_USER=postgres<br />
+DB_PASS=password<br />
+DB_HOST=db<br />
+DB_PORT=5432<br />
+ALLOWED_HOSTS=*<br />
+SECRET_KEY=testkey<br />
+EMAIL_FROM_USER=testemail@gmail.com<br />
+EMAIL_HOST_PASSWORD=app_password<br />
+CELERY_BROKER_URL={BROKER_URL}<br />
+5. Open in terminal project root where docker-compose.yml and paste this command: docker-compose build.
+6. Wait when docker-compose build will be finished and paste next command: docker-compose up.
+7. Now you can see that project is running and it is appear in docker application where u can start/stop server in future.
+8. And you can go in your browser in path: 127.0.0.1:8000 and use project. <br />
+Here is Video Example with all this steps to run this project: <br />
+... To be continued!
 
 ### Screenshots
 ![1](https://user-images.githubusercontent.com/39094042/205227709-7db97604-b45d-4ff6-9420-83b9192e516f.jpg)
