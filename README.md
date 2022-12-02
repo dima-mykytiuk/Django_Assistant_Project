@@ -9,7 +9,7 @@ This project uses the following technologies:
 
 
 This web application has full user authorization with email confirmation. The functionality of this project can be divided into 3 applications:<br />
-1. Contact book where the user can store and edit data about his contacts:<br />
+1. Contact book where the user can store and edit data about his contacts:
 - Name<br />
 - Phones<br />
 - Address<br />
