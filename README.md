@@ -30,7 +30,7 @@ Small Demo of project: https://www.youtube.com/watch?v=Z2Alz_LjSwk
 ### Installation
 1. You need to have pre installed IDE and Docker
 2. Create new project and clone project from git in your IDE
-3. You need to have google email with 2-FA to create app password to send notifications:
+3. You need to have google mail with 2-FA to create app password to send notifications:
   - Login to your Gmail account
   - Click on manage your account
   - Select the security option and enable the two factor authentication (2-FA)
