@@ -30,7 +30,7 @@ Small Demo of project: https://www.youtube.com/watch?v=Z2Alz_LjSwk
 ### Installation
 1. You need to have pre installed IDE and Docker
 2. Create new project and clone project from git in your IDE
-3. You need to have google email with 2-FA to create app password for sending notifications:
+3. You need to have google email with 2-FA to create app password to send notifications:
   - Login to your Gmail account
   - Click on manage your account
   - Select the security option and enable the two factor authentication (2-FA)
@@ -46,7 +46,7 @@ ALLOWED_HOSTS=*<br />
 SECRET_KEY=testkey<br />
 EMAIL_FROM_USER=testemail@gmail.com<br />
 EMAIL_HOST_PASSWORD=app_password<br />
-CELERY_BROKER_URL={BROKER_URL}<br />
+CELERY_BROKER_URL=amqp://guest:guest@RabbitMQ_Server:5672<br />
 5. Open in terminal project root where docker-compose.yml and paste this command: docker-compose build.
 6. Wait when docker-compose build will be finished and paste next command: docker-compose up.
 7. Now you can see that project is running and it is appear in docker application where u can start/stop server in future.
