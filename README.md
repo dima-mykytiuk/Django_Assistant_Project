@@ -28,7 +28,7 @@ Also in this project, the Django Rest Framework functionality is implemented, ac
 Small Demo of project: https://www.youtube.com/watch?v=Z2Alz_LjSwk
 
 ### Installation
-... To Be Continue
+... To Be Continued
 
 ### Screenshots
 ![1](https://user-images.githubusercontent.com/39094042/205227709-7db97604-b45d-4ff6-9420-83b9192e516f.jpg)
