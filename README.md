@@ -37,7 +37,7 @@ Small Demo of project: https://www.youtube.com/watch?v=Z2Alz_LjSwk
   - Once the 2-FA option is available, you now have the option to create an app password
   - Create app password following this instruction [Link](https://support.google.com/mail/answer/185833?hl=en)
 4. Create .env file in project root and fill in the file like this example:<br />
-DB_NAME=ImageClassifier<br />
+DB_NAME=WebAssistant<br />
 DB_USER=postgres<br />
 DB_PASS=password<br />
 DB_HOST=db<br />
