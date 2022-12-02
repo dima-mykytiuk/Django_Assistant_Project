@@ -8,18 +8,18 @@ This project uses the following technologies:
 5. Django Rest Framework<br />
 
 
-This web application has full user authorization with email confirmation. The functionality of this project can be divided into 3 applications:
-1. Contact book where the user can store and edit data about his contacts:
-*Name
-*Phones
-*Address
-*Birthday
-*Mail
-2. Notes where the user can create and edit note data:
-*Note title
-*tags
-*Description
-*Status
+This web application has full user authorization with email confirmation. The functionality of this project can be divided into 3 applications:<br />
+1. Contact book where the user can store and edit data about his contacts:<br />
+*Name<br />
+*Phones<br />
+*Address<br />
+*Birthday<br />
+*Mail<br />
+2. Notes where the user can create and edit note data:<br />
+*Note title<br />
+*tags<br />
+*Description<br />
+*Status<br />
 3. File manager where the user can upload/download files.
 
 Also in this project, the DRF functionality is implemented, access to which only the administrator has access.
